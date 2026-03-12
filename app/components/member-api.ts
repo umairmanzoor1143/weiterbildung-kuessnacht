@@ -52,7 +52,8 @@ export interface Company {
 
 // ─── API config ──────────────────────────────────────────────────────────────
 
-const CONNECT_API_URL = process.env.NEXT_PUBLIC_APP_CONNECT_API_URL || "";
+const CONNECT_API_URL =
+  process.env.NEXT_PUBLIC_APP_CONNECT_API_URL || "https://me.onra.ch/api";
 const CONNECT_TOKEN =
   process.env.NEXT_PUBLIC_CONNECT_TOKEN || ""
 
@@ -190,7 +191,7 @@ export function filterCompaniesBySlug(
   slug: string
 ): Company[] {
   const allowed = getCategorySet(slug);
-  if (allowed.size === 0) return companies; // no mapping → show all
+  if (allowed.size === 0) return []; // no mapping → return empty (avoids oversized ISR pages)
   return companies.filter((c) => c.categories.some((cat) => allowed.has(cat)));
 }
 

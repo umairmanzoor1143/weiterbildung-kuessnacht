@@ -1,23 +1,33 @@
 import { notFound } from "next/navigation";
 import {
-  kurseItems,
   anbietendeItems,
-  kurseSlugs,
   anbietendeSlugs,
-  kurseData,
   anbietendeData,
 } from "@/app/lib/data";
 import type { Metadata } from "next";
 import KurseContent from "@/app/components/KurseContent";
 import AnbietendeContent from "@/app/components/AnbietendeContent";
+import {
+  fetchCourses,
+  isMonthSlug,
+  getMonthLabel,
+  getMonthNumber,
+  filterCoursesByMonth,
+} from "@/app/components/course-api";
+import {
+  fetchAllCompanies,
+  filterCompaniesBySlug,
+} from "@/app/components/member-api";
 
 // ─── Static Params ───────────────────────────────────────────────────────────
 
 export function generateStaticParams() {
-  const kursParams = kurseItems.map((item) => ({ slug: item.slug }));
-  const anbietendeParams = anbietendeItems.map((item) => ({ slug: item.slug }));
-  return [...kursParams, ...anbietendeParams];
+  // Only anbietende slugs are static; kurse month pages are dynamic
+  return anbietendeItems.map((item) => ({ slug: item.slug }));
 }
+
+// Allow dynamic month slugs that aren't in generateStaticParams
+export const dynamicParams = true;
 
 // ─── Metadata ────────────────────────────────────────────────────────────────
 
@@ -26,11 +36,11 @@ type Props = { params: Promise<{ slug: string }> };
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slug } = await params;
 
-  if (kurseSlugs.has(slug)) {
-    const data = kurseData[slug];
+  if (isMonthSlug(slug)) {
+    const label = getMonthLabel(slug);
     return {
-      title: `Kurse ${data?.label ?? slug} – Weiterbildung Küssnacht`,
-      description: `Kursangebot für ${data?.label ?? slug} im Bezirk Küssnacht.`,
+      title: `Kurse ${label} – Weiterbildung Küssnacht`,
+      description: `Kursangebot für ${label} im Bezirk Küssnacht.`,
     };
   }
 
@@ -50,7 +60,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SlugPage({ params }: Props) {
   const { slug } = await params;
 
-  if (kurseSlugs.has(slug)) {
+  if (isMonthSlug(slug)) {
     return <KursePage slug={slug} />;
   }
 
@@ -63,27 +73,33 @@ export default async function SlugPage({ params }: Props) {
 
 // ─── Kurse Page Template ─────────────────────────────────────────────────────
 
-function KursePage({ slug }: { slug: string }) {
-  const data = kurseData[slug];
-  if (!data) notFound();
+async function KursePage({ slug }: { slug: string }) {
+  const label = getMonthLabel(slug);
+  const monthNum = getMonthNumber(slug)!;
 
-  return <KurseContent slug={slug} label={data.label} courses={data.courses} />;
+  // Fetch all courses, then filter by month client-side
+  const allCourses = await fetchCourses();
+  const courses = filterCoursesByMonth(allCourses, monthNum);
+
+  return <KurseContent slug={slug} label={label} courses={courses} />;
 }
 
 // ─── Anbietende Page Template ────────────────────────────────────────────────
 
-function AnbietendePage({ slug }: { slug: string }) {
+async function AnbietendePage({ slug }: { slug: string }) {
   const data = anbietendeData[slug];
   if (!data) notFound();
 
-  const allCourses = Object.values(kurseData).flatMap((d) => d.courses);
+  // Fetch all member companies, then filter by anbietende category
+  const allCompanies = await fetchAllCompanies();
+  const companies = filterCompaniesBySlug(allCompanies, slug);
 
   return (
     <AnbietendeContent
       slug={slug}
       label={data.label}
       description={data.description}
-      courses={allCourses}
+      companies={companies}
     />
   );
 }

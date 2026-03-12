@@ -1,8 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import Link from "next/link";
-import { kurseItems, type Kurs } from "@/app/lib/data";
+import { type Kurs } from "./course-api";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 

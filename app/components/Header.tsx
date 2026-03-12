@@ -4,7 +4,8 @@ import { useState, useEffect } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
-import { kurseItems, anbietendeItems, vereinItems } from "@/app/lib/data";
+import { anbietendeItems, vereinItems } from "@/app/lib/data";
+import { MonthItem, fetchAvailableMonths } from "./course-api";
 
 const ChevronIcon = ({ className }: { className?: string }) => (
   <svg
@@ -23,6 +24,11 @@ export default function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mobileDropdown, setMobileDropdown] = useState<string | null>(null);
   const [newsletterOpen, setNewsletterOpen] = useState(false);
+  const [kurseMonths, setKurseMonths] = useState<MonthItem[]>([]);
+
+  useEffect(() => {
+    fetchAvailableMonths().then(setKurseMonths);
+  }, []);
 
   const toggleMobileDropdown = (name: string) => {
     setMobileDropdown((prev) => (prev === name ? null : name));
@@ -81,15 +87,19 @@ export default function Header() {
             </button>
             <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
               <div className="bg-white border border-zinc-200 rounded-lg shadow-lg py-2 min-w-[160px]">
-                {kurseItems.map((item) => (
-                  <Link
-                    key={item.slug}
-                    href={`/${item.slug}`}
-                    className="block px-4 py-2 text-xs text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors normal-case tracking-normal"
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {kurseMonths.length === 0 ? (
+                  <span className="block px-4 py-2 text-xs text-zinc-400">Laden…</span>
+                ) : (
+                  kurseMonths.map((item) => (
+                    <Link
+                      key={item.slug}
+                      href={`/${item.slug}`}
+                      className="block px-4 py-2 text-xs text-zinc-600 hover:text-zinc-900 hover:bg-zinc-50 transition-colors normal-case tracking-normal"
+                    >
+                      {item.label}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
           </div>
@@ -174,16 +184,20 @@ export default function Header() {
               }`}
             >
               <div className="pl-4 pb-2 space-y-1">
-                {kurseItems.map((item) => (
-                  <Link
-                    key={item.slug}
-                    href={`/${item.slug}`}
-                    className="block py-2 text-sm text-zinc-600 hover:text-zinc-900 transition-colors"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    {item.label}
-                  </Link>
-                ))}
+                {kurseMonths.length === 0 ? (
+                  <span className="block py-2 text-sm text-zinc-400">Laden…</span>
+                ) : (
+                  kurseMonths.map((item) => (
+                    <Link
+                      key={item.slug}
+                      href={`/${item.slug}`}
+                      className="block py-2 text-sm text-zinc-600 hover:text-zinc-900 transition-colors"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {item.label}
+                    </Link>
+                  ))
+                )}
               </div>
             </div>
           </div>

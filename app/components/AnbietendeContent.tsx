@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { type Company } from "./member-api";
+import { type Company } from "@/app/lib/api/members";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 

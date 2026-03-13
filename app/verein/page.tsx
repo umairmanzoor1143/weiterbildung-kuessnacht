@@ -1,12 +1,15 @@
-import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import {
   vereinItems,
-  vorstandMembers,
   ueberUnsStatements,
   dokumenteLinks,
 } from "@/app/lib/data";
+import {
+  fetchVorstandMembers,
+  extractGroupLabel,
+  extractBullets,
+} from "@/app/lib/api/functionaries";
 
 // ─── SEO Metadata ────────────────────────────────────────────────────────────
 
@@ -35,7 +38,9 @@ export const metadata: Metadata = {
 
 // ─── Page Component ──────────────────────────────────────────────────────────
 
-export default function VereinPage() {
+export default async function VereinPage() {
+  const vorstandMembers = await fetchVorstandMembers();
+
   return (
     <div className="max-w-[1800px] mx-auto border-x border-zinc-100 min-h-screen flex flex-col relative">
       <main className="flex-1 flex flex-col">
@@ -96,29 +101,80 @@ export default function VereinPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {vorstandMembers.map((member) => (
-                <div
-                  key={member.name}
-                  className="border border-zinc-200 flex flex-col hover:border-zinc-900 transition-colors group overflow-hidden"
-                >
-                  <div className="aspect-[3/2] relative bg-zinc-100 overflow-hidden">
-                    <Image
-                      src={member.image}
-                      alt={member.name}
-                      fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
-                      sizes="(max-width: 768px) 100vw, 33vw"
-                    />
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {vorstandMembers.map((member) => {
+                const groupLabel = extractGroupLabel(member.descriptionHtml);
+                const bullets = extractBullets(member.descriptionHtml);
+
+                return (
+                  <div
+                    key={member.id}
+                    className="border border-zinc-200 flex flex-col hover:border-zinc-900 transition-colors group overflow-hidden"
+                  >
+                    {/* Header with image + title */}
+                    <div className="flex items-center gap-4 p-6 border-b border-zinc-100">
+                      {member.image ? (
+                        <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-zinc-100 border border-zinc-200">
+                          <img
+                            src={member.image}
+                            alt={member.fullName}
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-16 h-16 rounded-full bg-zinc-100 border border-zinc-200 shrink-0 flex items-center justify-center">
+                          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                            <circle cx="12" cy="7" r="4" />
+                          </svg>
+                        </div>
+                      )}
+                      <div className="min-w-0">
+                        <h3 className="text-lg font-bold text-zinc-900 leading-snug">
+                          {member.title}
+                        </h3>
+                        <p className="text-sm text-zinc-500 mt-0.5">
+                          {member.fullName}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Description */}
+                    {groupLabel || bullets.length > 0 && <div className="px-6 py-4 flex-1">
+                      {groupLabel && (
+                        <p className="text-sm font-semibold italic text-zinc-700 mb-2">
+                          {groupLabel}
+                        </p>
+                      )}
+                      {bullets.length > 0 && (
+                        <ul className="space-y-1">
+                          {bullets.map((bullet, i) => (
+                            <li
+                              key={i}
+                              className="flex items-start gap-2 text-sm text-zinc-600"
+                            >
+                              <span className="w-1 h-1 rounded-full bg-primary shrink-0 mt-2" />
+                              {bullet}
+                            </li>
+                          ))}
+                        </ul>
+                      )}
+                    </div>}
+
+                    {/* Footer with Mitglied werden */}
+                    <div className="px-6 py-3 border-t border-zinc-100">
+                      <a
+                        href={`https://me.onra.ch/signup/?partnerToken=${process.env.NEXT_PUBLIC_CONNECT_TOKEN}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary hover:text-zinc-900 transition-colors"
+                      >
+                        Mitglied werden →
+                      </a>
+                    </div>
                   </div>
-                  <div className="p-6">
-                    <h3 className="text-sm font-semibold text-zinc-900">
-                      {member.name}
-                    </h3>
-                    <p className="text-xs text-zinc-500 mt-1">{member.role}</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         </section>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { type Kurs } from "./course-api";
+import { type Kurs } from "@/app/lib/api/courses";
 
 // ─── Icons ───────────────────────────────────────────────────────────────────
 

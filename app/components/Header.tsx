@@ -5,7 +5,7 @@ import { createPortal } from "react-dom";
 import Image from "next/image";
 import Link from "next/link";
 import { anbietendeItems, vereinItems } from "@/app/lib/data";
-import { MonthItem, fetchAvailableMonths } from "./course-api";
+import { type MonthItem, fetchAvailableMonths } from "@/app/lib/api/courses";
 
 const ChevronIcon = ({ className }: { className?: string }) => (
   <svg

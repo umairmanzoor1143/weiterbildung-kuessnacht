@@ -1,4 +1,4 @@
-// ─── Course Types (matching the backend CourseModel response) ────────────────
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface CourseInstructor {
   name: string;
@@ -26,8 +26,6 @@ export interface CourseFromAPI {
   created: string;
 }
 
-// ─── Kurs type used by KurseContent / AnbietendeContent components ──────────
-
 export interface Kurs {
   id: string;
   title: string;
@@ -41,6 +39,11 @@ export interface Kurs {
   email: string;
   dayOfWeek: string;
   timeRange: string;
+}
+
+export interface MonthItem {
+  slug: string;
+  label: string;
 }
 
 // ─── Transform API response to Kurs format ──────────────────────────────────
@@ -65,18 +68,18 @@ export function mapCourseToKurs(course: CourseFromAPI): Kurs {
 // ─── German month mapping ────────────────────────────────────────────────────
 
 const MONTH_NAMES: Record<number, { slug: string; label: string }> = {
-  1:  { slug: "januar",    label: "Januar" },
-  2:  { slug: "februar",   label: "Februar" },
-  3:  { slug: "maerz",     label: "März" },
-  4:  { slug: "april",     label: "April" },
-  5:  { slug: "mai",       label: "Mai" },
-  6:  { slug: "juni",      label: "Juni" },
-  7:  { slug: "juli",      label: "Juli" },
-  8:  { slug: "august",    label: "August" },
-  9:  { slug: "september", label: "September" },
-  10: { slug: "oktober",   label: "Oktober" },
-  11: { slug: "november",  label: "November" },
-  12: { slug: "dezember",  label: "Dezember" },
+  1: { slug: "januar", label: "Januar" },
+  2: { slug: "februar", label: "Februar" },
+  3: { slug: "maerz", label: "März" },
+  4: { slug: "april", label: "April" },
+  5: { slug: "mai", label: "Mai" },
+  6: { slug: "juni", label: "Juni" },
+  7: { slug: "juli", label: "Juli" },
+  8: { slug: "august", label: "August" },
+  9: { slug: "september", label: "September" },
+  10: { slug: "oktober", label: "Oktober" },
+  11: { slug: "november", label: "November" },
+  12: { slug: "dezember", label: "Dezember" },
 };
 
 const SLUG_TO_MONTH: Record<string, number> = Object.fromEntries(
@@ -108,16 +111,20 @@ export function filterCoursesByMonth(courses: Kurs[], month: number): Kurs[] {
   });
 }
 
-// ─── Fetch courses from the API ──────────────────────────────────────────────
+// ─── API config ──────────────────────────────────────────────────────────────
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_APP_CONNECT_API_URL || "http://localhost:5000";
+const API_BASE_URL =
+  process.env.NEXT_PUBLIC_APP_CONNECT_API_URL || "http://localhost:5000";
 
+// ─── Fetch helpers ───────────────────────────────────────────────────────────
+
+/** Fetch all courses from the API */
 export async function fetchCourses(): Promise<Kurs[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/web/courses`, {
       next: { revalidate: 60 },
     });
-console.log("Fetched courses:", res, res.statusText);
+
     if (!res.ok) {
       console.error("Failed to fetch courses:", res.status, res.statusText);
       return [];
@@ -131,13 +138,7 @@ console.log("Fetched courses:", res, res.statusText);
   }
 }
 
-// ─── Fetch available months from the API ─────────────────────────────────────
-
-export interface MonthItem {
-  slug: string;
-  label: string;
-}
-
+/** Fetch available months that have courses */
 export async function fetchAvailableMonths(): Promise<MonthItem[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/web/courses/months`, {

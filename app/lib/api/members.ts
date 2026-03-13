@@ -1,10 +1,4 @@
-// ─── Types (matching API responses directly — not transformed) ───────────────
-
-export interface Member {
-  ownerId: string;
-  ownerType: string;
-  created: string;
-}
+// ─── Types ───────────────────────────────────────────────────────────────────
 
 export interface CompanyAddress {
   street: string;
@@ -68,7 +62,7 @@ export interface Company {
 const CONNECT_API_URL =
   process.env.NEXT_PUBLIC_APP_CONNECT_API_URL || "https://me.onra.ch/api";
 const CONNECT_TOKEN =
-  process.env.NEXT_PUBLIC_CONNECT_TOKEN || ""
+  process.env.NEXT_PUBLIC_CONNECT_TOKEN || "";
 
 // ─── Fetch helpers ───────────────────────────────────────────────────────────
 
@@ -97,10 +91,6 @@ export async function fetchAllCompanies(): Promise<Company[]> {
 }
 
 // ─── Tag mapping: anbietende slug → tag values used for filtering ────────────
-//
-// The company API now includes a `tags` array with human-readable labels
-// (e.g. "Eltern & Kinder"). This maps each anbietende navigation slug to the
-// matching tag values for filtering.
 
 export const ANBIETENDE_TAG_MAP: Record<string, string[]> = {
   elternkinder: ["Eltern & Kinder"],
@@ -118,15 +108,11 @@ export const ANBIETENDE_TAG_MAP: Record<string, string[]> = {
   sprachen: ["Sprachen"],
 };
 
-// Reverse lookup: build a Set of all mapped tags for a given slug
 const slugTagSetCache = new Map<string, Set<string>>();
 
 function getTagSet(slug: string): Set<string> {
   if (!slugTagSetCache.has(slug)) {
-    slugTagSetCache.set(
-      slug,
-      new Set(ANBIETENDE_TAG_MAP[slug] ?? [])
-    );
+    slugTagSetCache.set(slug, new Set(ANBIETENDE_TAG_MAP[slug] ?? []));
   }
   return slugTagSetCache.get(slug)!;
 }
@@ -138,9 +124,7 @@ export function filterCompaniesBySlug(
 ): Company[] {
   const allowed = getTagSet(slug);
   if (allowed.size === 0) return [];
-  return companies.filter((c) =>
-    c.tags?.some((tag) => allowed.has(tag))
-  );
+  return companies.filter((c) => c.tags?.some((tag) => allowed.has(tag)));
 }
 
 // ─── Human-readable German labels for API categories ─────────────────────────

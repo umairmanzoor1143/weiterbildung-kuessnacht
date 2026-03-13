@@ -13,11 +13,11 @@ import {
   getMonthLabel,
   getMonthNumber,
   filterCoursesByMonth,
-} from "@/app/components/course-api";
+} from "@/app/lib/api/courses";
 import {
   fetchAllCompanies,
   filterCompaniesBySlug,
-} from "@/app/components/member-api";
+} from "@/app/lib/api/members";
 
 // ─── Static Params ───────────────────────────────────────────────────────────
 

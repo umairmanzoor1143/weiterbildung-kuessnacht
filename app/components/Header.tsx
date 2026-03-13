@@ -88,7 +88,9 @@ export default function Header() {
             <div className="absolute top-full left-0 pt-2 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
               <div className="bg-white border border-zinc-200 rounded-lg shadow-lg py-2 min-w-[160px]">
                 {kurseMonths.length === 0 ? (
-                  <span className="block px-4 py-2 text-xs text-zinc-400">Laden…</span>
+                 
+                 <>
+                    </>
                 ) : (
                   kurseMonths.map((item) => (
                     <Link
@@ -185,7 +187,7 @@ export default function Header() {
             >
               <div className="pl-4 pb-2 space-y-1">
                 {kurseMonths.length === 0 ? (
-                  <span className="block py-2 text-sm text-zinc-400">Laden…</span>
+                  <span className="block py-2 text-sm text-zinc-400"></span>
                 ) : (
                   kurseMonths.map((item) => (
                     <Link

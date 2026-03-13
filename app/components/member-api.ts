@@ -30,11 +30,21 @@ export interface CompanyOpeningHours {
   items: OpeningHoursItem[];
 }
 
+export interface WeblinkItem {
+  code: string;
+  url: string;
+}
+
+export interface VrTour {
+  image: string;
+  url: string;
+}
+
 export interface CompanyWeblinks {
   website: string;
   bookingLink: string;
-  vrTour: string | null;
-  weblinksItems: unknown[];
+  vrTour: VrTour | string | null;
+  weblinksItems: WeblinkItem[];
 }
 
 export interface Company {
@@ -45,9 +55,12 @@ export interface Company {
   weblinks: CompanyWeblinks;
   openingHours: CompanyOpeningHours;
   image: string;
-  profileState: string | null;
+  profileState: { message: string } | string | null;
   categories: string[];
   address: CompanyAddress;
+  customName: string;
+  customLogo: string;
+  tags: string[];
 }
 
 // ─── API config ──────────────────────────────────────────────────────────────
@@ -59,140 +72,75 @@ const CONNECT_TOKEN =
 
 // ─── Fetch helpers ───────────────────────────────────────────────────────────
 
-async function fetchMembers(): Promise<Member[]> {
+/** Fetch all member companies from the association members list */
+export async function fetchAllCompanies(): Promise<Company[]> {
   try {
-    const res = await fetch(`${CONNECT_API_URL}/connect/associations/members-list`, {
-      headers: { "connect-token": CONNECT_TOKEN },
-      next: { revalidate: 60 },
-    });
+    const res = await fetch(
+      `${CONNECT_API_URL}/connect/associations/members-list`,
+      {
+        headers: { "connect-token": CONNECT_TOKEN },
+        next: { revalidate: 60 },
+      }
+    );
+
     if (!res.ok) {
       console.error("Failed to fetch members:", res.status, res.statusText);
       return [];
     }
-    return await res.json();
+
+    const companies: Company[] = await res.json();
+    return companies.filter((c): c is Company => c !== null);
   } catch (error) {
     console.error("Error fetching members:", error);
     return [];
   }
 }
 
-async function fetchCompany(ownerId: string): Promise<Company | null> {
-  try {
-    const res = await fetch(`${CONNECT_API_URL}/connect/company/${ownerId}`, {
-      headers: { "connect-token": CONNECT_TOKEN },
-      next: { revalidate: 60 },
-    });
-    if (!res.ok) {
-      console.error(`Failed to fetch company ${ownerId}:`, res.status);
-      return null;
-    }
-    return await res.json();
-  } catch (error) {
-    console.error(`Error fetching company ${ownerId}:`, error);
-    return null;
-  }
-}
-
-/** Fetch all member companies in parallel */
-export async function fetchAllCompanies(): Promise<Company[]> {
-  const members = await fetchMembers();
-  const promises = members
-    .filter((m) => m.ownerType === "COMPANY")
-    .map((m) => fetchCompany(m.ownerId));
-
-  const results = await Promise.all(promises);
-  return results.filter((c): c is Company => c !== null);
-}
-
-// ─── Category mapping: anbietende slug → API category values ─────────────────
+// ─── Tag mapping: anbietende slug → tag values used for filtering ────────────
 //
-// The company API uses business-type categories (RESTAURANTS, BANKING, etc.).
-// This maps each anbietende navigation slug to the matching API categories.
+// The company API now includes a `tags` array with human-readable labels
+// (e.g. "Eltern & Kinder"). This maps each anbietende navigation slug to the
+// matching tag values for filtering.
 
-export const ANBIETENDE_CATEGORY_MAP: Record<string, string[]> = {
-  essentrinken: [
-    "RESTAURANTS",
-    "TAKEAWAY_SNACK_BAR",
-    "BAR",
-    "BARS",
-    "BAKERY",
-    "BAKERY_SHOP",
-    "BEVERAGES",
-    "COFFEE_SHOP",
-    "CONDITOREI",
-    "BUTCHER",
-    "BUTCHERS_SHOP",
-    "PASTRY_SHOP_CONFECTIONERY",
-    "GROCERY_STORE",
-  ],
-  fitnessyoga: ["FITNESS_CENTER", "SPORTS_RETAILER"],
-  gesundheit: [
-    "MOVEMENT_PHYSIOTHERAPY",
-    "NATUROPATHY",
-    "MASSAGE",
-    "DRUGSTORES",
-    "HEARING_SPECIALIST",
-    "OPTICIANS",
-    "VETERINARY",
-  ],
-  informatik: ["IT_AND_TELECOMMUNICATIONS"],
-  kulturgeschichte: [
-    "EVENT_LOCATIONS",
-    "LEISURE",
-    "ARCHITECTURE",
-    "PHOTOGRAPHY",
-  ],
-  modelifestyle: [
-    "CLOTHING_STORE",
-    "BOUTIQUE_SHOP",
-    "BEAUTY",
-    "COSMETICS_AND_SKIN",
-    "HAIR_STYLIST",
-    "BARBER",
-    "JEWELRY",
-    "WATCHES",
-    "LEATHER_GOODS",
-    "SHOE_STORE",
-    "GOLDSMITH",
-    "THRIFT_STORE",
-  ],
-  malenhandwerk: [
-    "CRAFTSMEN",
-    "DESIGN",
-    "FLOWERS_AND_FLORISTRY",
-    "PRINTING_AND_ADVERTISING",
-    "STATIONERY",
-  ],
-  // Broader / catch-all groups
-  elternkinder: [],
-  erstehilfe: [],
-  musik: [],
-  selbsterfahrung: [],
-  senioren: [],
-  sprachen: [],
+export const ANBIETENDE_TAG_MAP: Record<string, string[]> = {
+  elternkinder: ["Eltern & Kinder"],
+  essentrinken: ["Essen & Trinken"],
+  erstehilfe: ["Erste Hilfe"],
+  fitnessyoga: ["Fitness & Yoga"],
+  gesundheit: ["Gesundheit"],
+  informatik: ["Informatik"],
+  kulturgeschichte: ["Kultur & Geschichte"],
+  modelifestyle: ["Mode & Lifestyle"],
+  malenhandwerk: ["Malen & Handwerk"],
+  musik: ["Musik"],
+  selbsterfahrung: ["Selbsterfahrung"],
+  senioren: ["Senioren"],
+  sprachen: ["Sprachen"],
 };
 
-// Reverse lookup: build a Set of all mapped API categories for a given slug
-const slugCategorySetCache = new Map<string, Set<string>>();
+// Reverse lookup: build a Set of all mapped tags for a given slug
+const slugTagSetCache = new Map<string, Set<string>>();
 
-function getCategorySet(slug: string): Set<string> {
-  if (!slugCategorySetCache.has(slug)) {
-    slugCategorySetCache.set(
+function getTagSet(slug: string): Set<string> {
+  if (!slugTagSetCache.has(slug)) {
+    slugTagSetCache.set(
       slug,
-      new Set(ANBIETENDE_CATEGORY_MAP[slug] ?? [])
+      new Set(ANBIETENDE_TAG_MAP[slug] ?? [])
     );
   }
-  return slugCategorySetCache.get(slug)!;
+  return slugTagSetCache.get(slug)!;
 }
 
-/** Filter companies whose categories overlap with the anbietende slug */
+/** Filter companies whose tags overlap with the anbietende slug */
 export function filterCompaniesBySlug(
   companies: Company[],
   slug: string
 ): Company[] {
-  const allowed = getCategorySet(slug);
-  if (allowed.size === 0) return []; // no mapping → return empty (avoids oversized ISR pages)
-  return companies.filter((c) => c.categories.some((cat) => allowed.has(cat)));
+  const allowed = getTagSet(slug);
+  if (allowed.size === 0) return [];
+  return companies.filter((c) =>
+    c.tags?.some((tag) => allowed.has(tag))
+  );
 }
 
 // ─── Human-readable German labels for API categories ─────────────────────────

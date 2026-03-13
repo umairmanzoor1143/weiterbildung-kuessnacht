@@ -110,14 +110,14 @@ export function filterCoursesByMonth(courses: Kurs[], month: number): Kurs[] {
 
 // ─── Fetch courses from the API ──────────────────────────────────────────────
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+const API_BASE_URL = process.env.NEXT_PUBLIC_APP_CONNECT_API_URL || "http://localhost:5000";
 
 export async function fetchCourses(): Promise<Kurs[]> {
   try {
     const res = await fetch(`${API_BASE_URL}/web/courses`, {
       next: { revalidate: 60 },
     });
-
+console.log("Fetched courses:", res, res.statusText);
     if (!res.ok) {
       console.error("Failed to fetch courses:", res.status, res.statusText);
       return [];

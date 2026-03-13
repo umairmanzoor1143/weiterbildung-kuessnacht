@@ -109,12 +109,12 @@ export default async function VereinPage() {
                 return (
                   <div
                     key={member.id}
-                    className="border border-zinc-200 flex flex-col hover:border-zinc-900 transition-colors group overflow-hidden"
+                    className="border border-zinc-200 flex flex-col hover:border-zinc-400 hover:shadow-md transition-all duration-200 group overflow-hidden bg-white"
                   >
                     {/* Header with image + title */}
-                    <div className="flex items-center gap-4 p-6 border-b border-zinc-100">
+                    <div className="flex items-center gap-4 p-6">
                       {member.image ? (
-                        <div className="w-16 h-16 rounded-full overflow-hidden shrink-0 bg-zinc-100 border border-zinc-200">
+                        <div className="w-[72px] h-[72px] rounded-full overflow-hidden shrink-0 bg-zinc-100 border-2 border-zinc-200 shadow-sm">
                           <img
                             src={member.image}
                             alt={member.fullName}
@@ -122,15 +122,15 @@ export default async function VereinPage() {
                           />
                         </div>
                       ) : (
-                        <div className="w-16 h-16 rounded-full bg-zinc-100 border border-zinc-200 shrink-0 flex items-center justify-center">
-                          <svg width={24} height={24} viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                        <div className="w-[72px] h-[72px] rounded-full bg-zinc-50 border-2 border-zinc-200 shadow-sm shrink-0 flex items-center justify-center">
+                          <svg width={28} height={28} viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
                             <circle cx="12" cy="7" r="4" />
                           </svg>
                         </div>
                       )}
                       <div className="min-w-0">
-                        <h3 className="text-lg font-bold text-zinc-900 leading-snug">
+                        <h3 className="text-lg font-bold text-zinc-900 leading-snug group-hover:text-primary transition-colors">
                           {member.title}
                         </h3>
                         <p className="text-sm text-zinc-500 mt-0.5">
@@ -140,36 +140,41 @@ export default async function VereinPage() {
                     </div>
 
                     {/* Description */}
-                    {groupLabel || bullets.length > 0 && <div className="px-6 py-4 flex-1">
-                      {groupLabel && (
-                        <p className="text-sm font-semibold italic text-zinc-700 mb-2">
-                          {groupLabel}
-                        </p>
-                      )}
-                      {bullets.length > 0 && (
-                        <ul className="space-y-1">
-                          {bullets.map((bullet, i) => (
-                            <li
-                              key={i}
-                              className="flex items-start gap-2 text-sm text-zinc-600"
-                            >
-                              <span className="w-1 h-1 rounded-full bg-primary shrink-0 mt-2" />
-                              {bullet}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </div>}
+                    {(groupLabel || bullets.length > 0) && (
+                      <div className="px-6 pb-4 flex-1">
+                        {groupLabel && (
+                          <span className="inline-block text-xs font-semibold uppercase tracking-wider text-zinc-500 bg-zinc-100 px-3 py-1 rounded-full mb-3">
+                            {groupLabel}
+                          </span>
+                        )}
+                        {bullets.length > 0 && (
+                          <ul className="space-y-1.5">
+                            {bullets.map((bullet, i) => (
+                              <li
+                                key={i}
+                                className="flex items-start gap-2 text-sm text-zinc-600"
+                              >
+                                <span className="w-1.5 h-1.5 rounded-full bg-primary/60 shrink-0 mt-1.5" />
+                                {bullet}
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                      </div>
+                    )}
 
                     {/* Footer with Mitglied werden */}
-                    <div className="px-6 py-3 border-t border-zinc-100">
+                    <div className="mt-auto px-6 py-4 border-t border-zinc-100 bg-zinc-50/50">
                       <a
                         href={`https://me.onra.ch/signup/?partnerToken=${process.env.NEXT_PUBLIC_CONNECT_TOKEN}`}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary hover:text-zinc-900 transition-colors"
+                        className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wider text-primary hover:text-zinc-900 transition-colors"
                       >
-                        Mitglied werden →
+                        Mitglied werden
+                        <svg width={14} height={14} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
                       </a>
                     </div>
                   </div>
